@@ -20,48 +20,48 @@ jobs:
             --data '{"event_type": "run-backend-tests", "client_payload": {"api": "apia", "unique_id": "$UNIQUE_ID"}}' \
             https://api.github.com/repos/antlhe/centralized-test/dispatches
 
-    wait-for-results:
-      runs-on: ubuntu-latest
-      needs: trigger-centralized-tests
-      env:
-        UNIQUE_ID: ${{ github.run_id }}-${{ github.run_number }}
-        CENTRALIZED_PAT: ${{ secrets.CENTRALIZED_PAT }}
-      steps:
-        - name: Wait for Artifact
-          run: |
-            echo "Waiting for artifact with unique ID: $UNIQUE_ID"
-            end_time=$(date -ud "30 minutes" +%s)
-            artifact_url=""
-            while [[ $(date -u +%s) -le $end_time ]]; do
-              response=$(curl -H "Authorization: token $CENTRALIZED_PAT" \
-                              -H "Accept: application/vnd.github.v3+json" \
-                              "https://api.github.com/repos/antlhe/centralized-test/actions/artifacts")
-              artifact_url=$(echo $response | jq -r --arg UNIQUE_ID "$UNIQUE_ID" '.artifacts[] | select(.name == $UNIQUE_ID) | .archive_download_url')
-              if [[ -n "$artifact_url" ]]; then
-                echo "Artifact found: $artifact_url"
-                break
-              else
-                echo "Artifact with $UNIQUE_ID not found. Waiting..."
-                sleep 10
-              fi
-            done
-
-            if [[ -z "$artifact_url" ]]; then
-              echo "Artifact with $UNIQUE_ID not found within the timeout period."
-              exit 1
-            fi
-
-            # If artifact is found, download it
-            curl -L -o artifact.zip -H "Authorization: token $CENTRALIZED_PAT" "$artifact_url"
-            
-            # Unzip the artifact
-            unzip artifact.zip
-            
-            # Assume the artifact contains a file named 'results.json'
-            # Check the test results
-            if jq -e '.conclusion == "success"' < results.json; then
-              echo "Tests passed!"
+  wait-for-results:
+    runs-on: ubuntu-latest
+    needs: trigger-centralized-tests
+    env:
+      UNIQUE_ID: ${{ github.run_id }}-${{ github.run_number }}
+      CENTRALIZED_PAT: ${{ secrets.CENTRALIZED_PAT }}
+    steps:
+      - name: Wait for Artifact
+        run: |
+          echo "Waiting for artifact with unique ID: $UNIQUE_ID"
+          end_time=$(date -ud "30 minutes" +%s)
+          artifact_url=""
+          while [[ $(date -u +%s) -le $end_time ]]; do
+            response=$(curl -H "Authorization: token $CENTRALIZED_PAT" \
+                            -H "Accept: application/vnd.github.v3+json" \
+                            "https://api.github.com/repos/antlhe/centralized-test/actions/artifacts")
+            artifact_url=$(echo $response | jq -r --arg UNIQUE_ID "$UNIQUE_ID" '.artifacts[] | select(.name == $UNIQUE_ID) | .archive_download_url')
+            if [[ -n "$artifact_url" ]]; then
+              echo "Artifact found: $artifact_url"
+              break
             else
-              echo "Tests failed or conclusion is not success."
-              exit 1
+              echo "Artifact with $UNIQUE_ID not found. Waiting..."
+              sleep 10
             fi
+          done
+
+          if [[ -z "$artifact_url" ]]; then
+            echo "Artifact with $UNIQUE_ID not found within the timeout period."
+            exit 1
+          fi
+
+          # If artifact is found, download it
+          curl -L -o artifact.zip -H "Authorization: token $CENTRALIZED_PAT" "$artifact_url"
+          
+          # Unzip the artifact
+          unzip artifact.zip
+          
+          # Assume the artifact contains a file named 'results.json'
+          # Check the test results
+          if jq -e '.conclusion == "success"' < results.json; then
+            echo "Tests passed!"
+          else
+            echo "Tests failed or conclusion is not success."
+            exit 1
+          fi
