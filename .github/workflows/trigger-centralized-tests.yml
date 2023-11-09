@@ -36,10 +36,11 @@ jobs:
           end_time=$(date -ud "2 minutes" +%s)
           artifact_url=""
           while [[ $(date -u +%s) -le $end_time ]]; do
-            response=$(curl -H "Authorization: token $CENTRALIZED_PAT" \
+            response=$(curl -s -H "Authorization: token $CENTRALIZED_PAT" \
                             -H "Accept: application/vnd.github.v3+json" \
                             "https://api.github.com/repos/antlhe/centralized-test/actions/artifacts")
-            artifact_url=$(echo $response | jq -r --arg UNIQUE_ID "$UNIQUE_ID" '.artifacts[] | select(.name == $UNIQUE_ID) | .archive_download_url')
+            echo "Artifacts API Response: $response"
+            artifact_url=$(echo $response | jq -r --arg UNIQUE_ID "$UNIQUE_ID" '.artifacts[] | select(.name | contains($UNIQUE_ID)) | .archive_download_url')
             if [[ -n "$artifact_url" ]]; then
               echo "Artifact found: $artifact_url"
               break
