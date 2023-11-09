@@ -63,9 +63,9 @@ jobs:
 
           # Assume the artifact contains a file named 'test-results.json'
           # Check the test results
-          if jq -e '.conclusion == "success"' < test-results.json; then
+          if [[ $(jq -r '.success' "test-results.json") == "true" ]]; then
             echo "Tests passed!"
           else
-            echo "Tests failed or conclusion is not success."
+            echo "Tests failed."
             exit 1
           fi
