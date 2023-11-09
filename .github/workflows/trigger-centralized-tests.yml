@@ -33,7 +33,7 @@ jobs:
         run: |
           UNIQUE_ID=${{ needs.trigger-centralized-tests.outputs.unique_id }}
           echo "Waiting for artifact with unique ID: $UNIQUE_ID"
-          end_time=$(date -ud "30 minutes" +%s)
+          end_time=$(date -ud "2 minutes" +%s)
           artifact_url=""
           while [[ $(date -u +%s) -le $end_time ]]; do
             response=$(curl -H "Authorization: token $CENTRALIZED_PAT" \
