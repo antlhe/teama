@@ -1,0 +1,17 @@
+name: Trigger Repository Dispatch
+
+on: [push, workflow_dispatch]
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Repository Dispatch Event
+      env:
+        TOKEN: ${{ secrets.CENTRALIZED_PAT }}
+      run: |
+        curl -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token $TOKEN" \
+          --data '{"event_type": "run-backend-tests", "client_payload": {"api": "teama"}}' \
+          https://api.github.com/repos/antlhe/centralized-test/dispatches
