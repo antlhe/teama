@@ -5,29 +5,33 @@ on: [push, workflow_dispatch]
 jobs:
   trigger-centralized-tests:
     runs-on: ubuntu-latest
+    outputs:
+      unique_id: ${{ steps.generate-uuid.outputs.unique_id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Generate UUID
+        id: generate-uuid
+        run: echo "::set-output name=unique_id::$(uuidgen)"
       - name: Trigger Repository Dispatch Event
         env:
           CENTRALIZED_PAT: ${{ secrets.CENTRALIZED_PAT }}
-          UNIQUE_ID: ${{ github.run_id }}-${{ github.run_number }}
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token $CENTRALIZED_PAT" \
-            --data "{\"event_type\": \"run-backend-tests\", \"client_payload\": {\"api\": \"apia\", \"unique_id\": \"$UNIQUE_ID\"}}" \
+            --data '{"event_type": "run-backend-tests", "client_payload": {"api": "apia", "unique_id": "${{ steps.generate-uuid.outputs.unique_id }}"}}' \
             https://api.github.com/repos/antlhe/centralized-test/dispatches
 
   wait-for-results:
     runs-on: ubuntu-latest
     needs: trigger-centralized-tests
     env:
-      UNIQUE_ID: ${{ github.run_id }}-${{ github.run_number }}
       CENTRALIZED_PAT: ${{ secrets.CENTRALIZED_PAT }}
     steps:
       - name: Wait for Artifact
         run: |
+          UNIQUE_ID=${{ needs.trigger-centralized-tests.outputs.unique_id }}
           echo "Waiting for artifact with unique ID: $UNIQUE_ID"
           end_time=$(date -ud "30 minutes" +%s)
           artifact_url=""
