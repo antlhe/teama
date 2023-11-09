@@ -61,9 +61,9 @@ jobs:
           # Unzip the artifact
           unzip artifact.zip
 
-          # Assume the artifact contains a file named 'results.json'
+          # Assume the artifact contains a file named 'test-results.json'
           # Check the test results
-          if jq -e '.conclusion == "success"' < results.json; then
+          if jq -e '.conclusion == "success"' < test-results.json; then
             echo "Tests passed!"
           else
             echo "Tests failed or conclusion is not success."
