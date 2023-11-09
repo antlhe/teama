@@ -39,7 +39,6 @@ jobs:
             response=$(curl -s -H "Authorization: token $CENTRALIZED_PAT" \
                             -H "Accept: application/vnd.github.v3+json" \
                             "https://api.github.com/repos/antlhe/centralized-test/actions/artifacts")
-            echo "Artifacts API Response: $response"
             artifact_url=$(echo $response | jq -r --arg UNIQUE_ID "$UNIQUE_ID" '.artifacts[] | select(.name | contains($UNIQUE_ID)) | .archive_download_url')
             if [[ -n "$artifact_url" ]]; then
               echo "Artifact found: $artifact_url"
@@ -55,14 +54,9 @@ jobs:
             exit 1
           fi
 
-          # If artifact is found, download it
           curl -L -o artifact.zip -H "Authorization: token $CENTRALIZED_PAT" "$artifact_url"
-
-          # Unzip the artifact
           unzip artifact.zip
 
-          # Assume the artifact contains a file named 'test-results.json'
-          # Check the test results
           if [[ $(jq -r '.success' "test-results.json") == "true" ]]; then
             echo "Tests passed!"
           else
