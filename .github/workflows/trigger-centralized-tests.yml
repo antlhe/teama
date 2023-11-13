@@ -9,10 +9,10 @@ jobs:
       unique_id: ${{ steps.generate-uuid.outputs.unique_id }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Generate UUID
         id: generate-uuid
-        run: echo "::set-output name=unique_id::$(uuidgen)"
+        run: echo "UNIQUE_ID=$(uuidgen)" >> $GITHUB_OUTPUT
       - name: Trigger Repository Dispatch Event
         env:
           CENTRALIZED_PAT: ${{ secrets.CENTRALIZED_PAT }}
