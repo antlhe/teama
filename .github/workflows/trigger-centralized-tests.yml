@@ -65,7 +65,7 @@ jobs:
           fi
       - name: Upload Downloaded Test Results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-results-${{ needs.trigger-centralized-tests.outputs.unique_id }}.json
           path: test-results.json
