@@ -67,5 +67,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-${{ needs.trigger-centralized-tests.outputs.unique_id }}
+          name: test-results-${{ needs.trigger-centralized-tests.outputs.unique_id }}.json
           path: test-results.json
