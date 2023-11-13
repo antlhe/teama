@@ -63,3 +63,9 @@ jobs:
             echo "Tests failed."
             exit 1
           fi
+      - name: Upload Downloaded Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-${{ needs.trigger-centralized-tests.outputs.unique_id }}
+          path: test-results.json
